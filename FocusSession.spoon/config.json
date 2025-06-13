@@ -1,0 +1,34 @@
+{
+  "hotkeys": {
+    "start": [["option", "cmd"], "t"],
+    "abort": [["option", "cmd", "ctrl"], "q"]
+  },
+  "colors": {
+    "overlay_bg": {"red": 0, "green": 0, "blue": 0, "alpha": 0.8},
+    "overlay_text": {"red": 1, "green": 1, "blue": 1, "alpha": 1},
+    "flash_color": {"red": 1, "green": 0, "blue": 0, "alpha": 0.5}
+  },
+  "flash_intervals": {
+    "initial": 300,
+    "extension": 180,
+    "grace": 60
+  },
+  "csv_path": "~/FocusSessions.csv",
+  "ui": {
+    "overlay_width": 300,
+    "overlay_height": 80,
+    "overlay_position": "top-right",
+    "font_size_task": 16,
+    "font_size_timer": 24
+  },
+  "session_defaults": {
+    "default_duration": 30,
+    "available_durations": [25, 30, 45, 60, 90]
+  },
+  "features": {
+    "enable_utility_hotkeys": false,
+    "prevent_sleep_during_session": true,
+    "auto_enable_dnd": false,
+    "play_completion_sound": true
+  }
+}
