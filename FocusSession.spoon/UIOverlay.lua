@@ -26,25 +26,25 @@ function obj:show(taskName, remainingSeconds)
     
     -- Container dimensions - more compact and professional
     local containerHeight = 44
-    local containerWidth = 380
+    local containerWidth = 340
     local x = screenFrame.x + (screenFrame.w - containerWidth) / 2
     local y = screenFrame.y + 40  -- Closer to top
     
     self.canvas = hs.canvas.new({x = x, y = y, w = containerWidth, h = containerHeight})
     self.canvasPosition = {x = x, y = y}  -- Store for dragging
     
-    -- Main container - cleaner, lighter background
+    -- Main container - semi-transparent gray background (static)
     self.canvas[1] = {
         type = "rectangle",
         action = "fill",
-        fillColor = {red = 0.96, green = 0.96, blue = 0.97, alpha = 0.92},
+        fillColor = {red = 0.25, green = 0.25, blue = 0.27, alpha = 0.8},
         roundedRectRadii = {xRadius = containerHeight/2, yRadius = containerHeight/2},
         trackMouseDown = true,
         trackMouseEnterExit = true,
         id = "background"
     }
     
-    -- Timer badge - subtle gray background
+    -- Timer badge - darker background
     local timerBadgeX = 16
     local timerBadgeY = 10
     local timerBadgeHeight = 24
@@ -53,32 +53,45 @@ function obj:show(taskName, remainingSeconds)
     self.canvas[2] = {
         type = "rectangle",
         action = "fill",
-        fillColor = {red = 0.85, green = 0.85, blue = 0.87, alpha = 1},
+        fillColor = {red = 0.18, green = 0.18, blue = 0.2, alpha = 1},
         roundedRectRadii = {xRadius = 6, yRadius = 6},
         frame = {x = timerBadgeX, y = timerBadgeY, w = timerBadgeWidth, h = timerBadgeHeight}
     }
     
-    -- Timer text - darker gray
+    -- Timer text - white
     local timeText = self:formatTime(remainingSeconds)
     self.canvas[3] = {
         type = "text", 
         text = timeText,
         textFont = "SF Pro Text Medium",
         textSize = 15,
-        textColor = {red = 0.3, green = 0.3, blue = 0.32, alpha = 1},
+        textColor = {red = 0.9, green = 0.9, blue = 0.92, alpha = 1},
         textAlignment = "center",
         frame = {x = timerBadgeX, y = timerBadgeY + 3, w = timerBadgeWidth, h = timerBadgeHeight - 6}
     }
     
-    -- Task title - clean typography
+    -- Calculate available width for task name
+    -- Container width - timer badge - margins - space for buttons
+    local taskNameX = timerBadgeX + timerBadgeWidth + 16
+    local buttonsSpace = 70  -- Very tight: pause(20) + cancel(20) + reorder(20) + minimal gaps
+    local rightMargin = 10
+    local availableWidth = containerWidth - taskNameX - buttonsSpace - rightMargin
+    
+    -- Task title - truncated with ellipsis if too long
+    local truncatedTaskName = taskName
+    local maxChars = 18  -- Adjusted for tighter layout
+    if string.len(taskName) > maxChars then
+        truncatedTaskName = string.sub(taskName, 1, maxChars) .. "..."
+    end
+    
     self.canvas[4] = {
         type = "text",
-        text = taskName,
+        text = truncatedTaskName,
         textFont = "SF Pro Text",
         textSize = 17,
-        textColor = {red = 0.1, green = 0.1, blue = 0.12, alpha = 1},
+        textColor = {red = 0.95, green = 0.95, blue = 0.97, alpha = 1},
         textAlignment = "left",
-        frame = {x = timerBadgeX + timerBadgeWidth + 16, y = 11, w = 180, h = 22}
+        frame = {x = taskNameX, y = 11, w = availableWidth, h = 22}
     }
     
     -- Control buttons (icons only)
@@ -98,23 +111,23 @@ end
 
 function obj:createControlButtons(width, height)
     local iconSize = 20
-    local rightMargin = 16
+    local rightMargin = 12
+    local buttonSpacing = 22  -- Very tight spacing between buttons
     
-    -- Calculate positions from right
-    local reorderX = width - rightMargin - 24
-    local abortX = reorderX - 36
-    local completeX = abortX - 32
-    local pauseX = completeX - 32
+    -- Calculate positions from right (only 3 controls now)
+    local reorderX = width - rightMargin - 20
+    local abortX = reorderX - buttonSpacing
+    local pauseX = abortX - buttonSpacing
     
     local centerY = height / 2
     
-    -- Pause button (icon only)
+    -- Pause button (icon only) - show pause when running, play when paused
     self.canvas[5] = {
         type = "text",
-        text = self.isPaused and "▶" or "❚❚",
+        text = self.isPaused and "►" or "❙❙",  -- Better pause/play symbols
         textFont = "SF Pro Text",
         textSize = 16,
-        textColor = {red = 0.35, green = 0.35, blue = 0.38, alpha = 1},
+        textColor = {red = 0.7, green = 0.7, blue = 0.72, alpha = 1},
         textAlignment = "center",
         frame = {x = pauseX - iconSize/2, y = centerY - iconSize/2, w = iconSize, h = iconSize},
         trackMouseDown = true,
@@ -122,27 +135,13 @@ function obj:createControlButtons(width, height)
         id = "pauseBtn"
     }
     
-    -- Complete button (checkmark icon)
+    -- Abort button (X icon)
     self.canvas[6] = {
         type = "text",
-        text = "✓",
+        text = "×",  -- Cleaner X symbol
         textFont = "SF Pro Text",
-        textSize = 18,
-        textColor = {red = 0.35, green = 0.35, blue = 0.38, alpha = 1},
-        textAlignment = "center",
-        frame = {x = completeX - iconSize/2, y = centerY - iconSize/2 - 1, w = iconSize, h = iconSize},
-        trackMouseDown = true,
-        trackMouseEnterExit = true,
-        id = "completeBtn"
-    }
-    
-    -- Abort button (X icon)
-    self.canvas[7] = {
-        type = "text",
-        text = "✕",
-        textFont = "SF Pro Text",
-        textSize = 16,
-        textColor = {red = 0.35, green = 0.35, blue = 0.38, alpha = 1},
+        textSize = 20,
+        textColor = {red = 0.7, green = 0.7, blue = 0.72, alpha = 1},
         textAlignment = "center",
         frame = {x = abortX - iconSize/2, y = centerY - iconSize/2, w = iconSize, h = iconSize},
         trackMouseDown = true,
@@ -158,7 +157,7 @@ function obj:createControlButtons(width, height)
     
     for row = 0, 2 do
         for col = 0, 1 do
-            local index = 8 + row * 2 + col
+            local index = 7 + row * 2 + col
             self.canvas[index] = {
                 type = "circle",
                 action = "fill",
@@ -170,7 +169,7 @@ function obj:createControlButtons(width, height)
     end
     
     -- Invisible drag area for reorder handle
-    self.canvas[14] = {
+    self.canvas[13] = {
         type = "rectangle",
         action = "fill",
         fillColor = {red = 0, green = 0, blue = 0, alpha = 0.01},
@@ -191,30 +190,26 @@ function obj:enableInteractions()
         if event == "mouseEnter" then
             -- Subtle hover effects
             if id == "pauseBtn" or id == 5 then
-                self.canvas[5].textColor = {red = 0.1, green = 0.1, blue = 0.12, alpha = 1}
-            elseif id == "completeBtn" or id == 6 then
-                self.canvas[6].textColor = {red = 0.1, green = 0.1, blue = 0.12, alpha = 1}
-            elseif id == "abortBtn" or id == 7 then
-                self.canvas[7].textColor = {red = 0.1, green = 0.1, blue = 0.12, alpha = 1}
-            elseif id == "reorderHandle" or id == 14 then
-                -- Make dots darker on hover
-                for i = 8, 13 do
+                self.canvas[5].textColor = {red = 0.95, green = 0.95, blue = 0.97, alpha = 1}
+            elseif id == "abortBtn" or id == 6 then
+                self.canvas[6].textColor = {red = 0.95, green = 0.95, blue = 0.97, alpha = 1}
+            elseif id == "reorderHandle" or id == 13 then
+                -- Make dots brighter on hover
+                for i = 7, 12 do
                     if self.canvas[i] then
-                        self.canvas[i].fillColor = {red = 0.4, green = 0.4, blue = 0.42, alpha = 1}
+                        self.canvas[i].fillColor = {red = 0.9, green = 0.9, blue = 0.92, alpha = 1}
                     end
                 end
             end
         elseif event == "mouseExit" then
             -- Reset hover effects
             if id == "pauseBtn" or id == 5 then
-                self.canvas[5].textColor = {red = 0.35, green = 0.35, blue = 0.38, alpha = 1}
-            elseif id == "completeBtn" or id == 6 then
-                self.canvas[6].textColor = {red = 0.35, green = 0.35, blue = 0.38, alpha = 1}
-            elseif id == "abortBtn" or id == 7 then
-                self.canvas[7].textColor = {red = 0.35, green = 0.35, blue = 0.38, alpha = 1}
-            elseif id == "reorderHandle" or id == 14 then
+                self.canvas[5].textColor = {red = 0.7, green = 0.7, blue = 0.72, alpha = 1}
+            elseif id == "abortBtn" or id == 6 then
+                self.canvas[6].textColor = {red = 0.7, green = 0.7, blue = 0.72, alpha = 1}
+            elseif id == "reorderHandle" or id == 13 then
                 -- Reset dots
-                for i = 8, 13 do
+                for i = 7, 12 do
                     if self.canvas[i] then
                         self.canvas[i].fillColor = {red = 0.75, green = 0.75, blue = 0.77, alpha = 1}
                     end
@@ -226,11 +221,9 @@ function obj:enableInteractions()
                     self:togglePauseState()
                     self.onPauseClick() 
                 end
-            elseif id == "completeBtn" or id == 6 then
-                if self.onCompleteClick then self.onCompleteClick() end
-            elseif id == "abortBtn" or id == 7 then
+            elseif id == "abortBtn" or id == 6 then
                 if self.onCancelClick then self.onCancelClick() end
-            elseif id == "reorderHandle" or id == 14 then
+            elseif id == "reorderHandle" or id == 13 then
                 -- Start dragging
                 isDragging = true
                 local mousePos = hs.mouse.absolutePosition()
@@ -273,10 +266,9 @@ function obj:togglePauseState()
     if self.canvas then
         -- Update pause icon
         if self.canvas[5] then
-            self.canvas[5].text = self.isPaused and "▶" or "❚❚"
+            self.canvas[5].text = self.isPaused and "►" or "❙❙"
         end
-        -- Subtle transparency change when paused
-        self.canvas[1].fillColor.alpha = self.isPaused and 0.85 or 0.92
+        -- Keep background static - no transparency change
     end
 end
 
@@ -300,14 +292,14 @@ function obj:updateStyle(phase)
     
     -- Subtle color changes for different phases
     if phase == "extension" then
-        self.canvas[2].fillColor = {red = 1, green = 0.92, blue = 0.82, alpha = 1} -- Light orange
-        self.canvas[3].textColor = {red = 0.8, green = 0.5, blue = 0.1, alpha = 1}
+        self.canvas[2].fillColor = {red = 0.5, green = 0.3, blue = 0.1, alpha = 1} -- Dark orange
+        self.canvas[3].textColor = {red = 1, green = 0.8, blue = 0.6, alpha = 1}
     elseif phase == "grace" then
-        self.canvas[2].fillColor = {red = 1, green = 0.85, blue = 0.85, alpha = 1} -- Light red
-        self.canvas[3].textColor = {red = 0.85, green = 0.3, blue = 0.3, alpha = 1}
+        self.canvas[2].fillColor = {red = 0.5, green = 0.15, blue = 0.15, alpha = 1} -- Dark red
+        self.canvas[3].textColor = {red = 1, green = 0.7, blue = 0.7, alpha = 1}
     else
-        self.canvas[2].fillColor = {red = 0.85, green = 0.85, blue = 0.87, alpha = 1} -- Default gray
-        self.canvas[3].textColor = {red = 0.3, green = 0.3, blue = 0.32, alpha = 1}
+        self.canvas[2].fillColor = {red = 0.3, green = 0.3, blue = 0.32, alpha = 1} -- Default dark gray
+        self.canvas[3].textColor = {red = 0.9, green = 0.9, blue = 0.92, alpha = 1}
     end
 end
 
@@ -316,13 +308,13 @@ function obj:pulse()
         return
     end
     
-    -- Subtle pulse effect
-    local originalAlpha = self.canvas[1].fillColor.alpha
-    self.canvas[1].fillColor.alpha = 0.7
+    -- Very subtle pulse - just flash the timer badge slightly
+    local originalColor = self.canvas[2].fillColor
+    self.canvas[2].fillColor = {red = 0.25, green = 0.25, blue = 0.27, alpha = 1}
     
-    hs.timer.doAfter(0.3, function()
-        if self.canvas then
-            self.canvas[1].fillColor.alpha = originalAlpha
+    hs.timer.doAfter(0.2, function()
+        if self.canvas and self.canvas[2] then
+            self.canvas[2].fillColor = originalColor
         end
     end)
 end

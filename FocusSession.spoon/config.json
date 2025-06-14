@@ -15,7 +15,7 @@
   },
   "csv_path": "~/FocusSessions.csv",
   "ui": {
-    "overlay_width": 700,
+    "overlay_width": 340,
     "overlay_height": 48,
     "overlay_position": "top-center",
     "font_size_task": 16,
