@@ -15,14 +15,16 @@
   },
   "csv_path": "~/FocusSessions.csv",
   "ui": {
-    "overlay_width": 400,
-    "overlay_height": 60,
+    "overlay_width": 700,
+    "overlay_height": 48,
     "overlay_position": "top-center",
-    "font_size_task": 20,
-    "font_size_timer": 24,
-    "pill_radius": 30,
+    "font_size_task": 16,
+    "font_size_timer": 14,
+    "container_radius": 12,
+    "button_radius": 16,
     "enable_drag": true,
-    "show_controls_on_hover": true
+    "show_controls": true,
+    "modern_theme": true
   },
   "session_defaults": {
     "default_duration": 30,
