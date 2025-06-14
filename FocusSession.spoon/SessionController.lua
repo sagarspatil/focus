@@ -67,6 +67,13 @@ function obj:start(taskName, plannedMinutes)
     
     self.state = self.STATES.ACTIVE
     
+    -- Set UI callbacks
+    self.uiOverlay:setCallbacks({
+        onPauseClick = function() self:togglePause() end,
+        onCompleteClick = function() self:finish("completed") end,
+        onCancelClick = function() self:abort() end
+    })
+    
     -- Start UI and timers
     self.uiOverlay:show(taskName, plannedMinutes * 60)
     self.timerEngine:startPhase("initial", plannedMinutes * 60)
@@ -177,6 +184,20 @@ function obj:finish(outcome)
     -- Reset state
     self.state = self.STATES.IDLE
     self.currentSession = nil
+end
+
+function obj:togglePause()
+    if self.state == self.STATES.IDLE then
+        return
+    end
+    
+    if self.timerEngine:isPaused() then
+        self.timerEngine:resume()
+        hs.notify.new({title="FocusSession", informativeText="Resumed"}):send()
+    else
+        self.timerEngine:pause()
+        hs.notify.new({title="FocusSession", informativeText="Paused"}):send()
+    end
 end
 
 function obj:abort()
