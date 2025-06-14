@@ -38,20 +38,21 @@ function obj:getTaskInput()
     end
     
     -- Then get duration
-    local minutesResult = hs.dialog.choiceFromList(
-        "How long do you plan to work?",
-        {"25", "30", "45", "60", "90"},
-        "Select duration (minutes)",
-        "30"
-    )
-    
-    if not minutesResult then
+    local minutesText = hs.dialog.textPrompt("Focus Session Duration", "How many minutes do you plan to work? (5-60)", "30", "OK", "Cancel")
+
+    if not minutesText or minutesText == "" then
+        return nil
+    end
+
+    local num = tonumber(minutesText)
+    if not num or num ~= math.floor(num) or num < 5 or num > 60 then
+        self:alert("Invalid Duration", "Please enter a whole number between 5 and 60 minutes.")
         return nil
     end
     
     return {
         task = taskResult,
-        minutes = tonumber(minutesResult[1])
+        minutes = num
     }
 end
 
@@ -134,18 +135,24 @@ function obj:enhancedTaskInput()
     
     -- Get duration
     local durationScript = [[
-        choose from list {"25", "30", "45", "60", "90"} with title "Focus Session Duration" with prompt "How many minutes do you plan to work?" default items {"30"}
-        return result as string
+        display dialog "How many minutes do you plan to work? (5-60)" default answer "30" with title "Focus Session Duration" buttons {"Cancel", "OK"} default button "OK"
+        return text returned of result
     ]]
     
-    local durationSuccess, duration = hs.osascript.applescript(durationScript)
-    if not durationSuccess or duration == "false" then
+    local durationSuccess, durationText = hs.osascript.applescript(durationScript)
+    if not durationSuccess or durationText == "" then
+        return nil
+    end
+
+    local num = tonumber(durationText)
+    if not num or num ~= math.floor(num) or num < 5 or num > 60 then
+        self:alert("Invalid Duration", "Please enter a whole number between 5 and 60 minutes.")
         return nil
     end
     
     return {
         task = taskName,
-        minutes = tonumber(duration)
+        minutes = num
     }
 end
 

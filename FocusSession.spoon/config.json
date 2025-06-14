@@ -6,7 +6,8 @@
   "colors": {
     "overlay_bg": {"red": 0, "green": 0, "blue": 0, "alpha": 0.8},
     "overlay_text": {"red": 1, "green": 1, "blue": 1, "alpha": 1},
-    "flash_color": {"red": 1, "green": 0, "blue": 0, "alpha": 0.5}
+    "flash_color": {"red": 1, "green": 0, "blue": 0, "alpha": 0.5},
+    "pulse_flash_color": {"red": 0.8, "green": 0.8, "blue": 0.8, "alpha": 0.3}
   },
   "flash_intervals": {
     "initial": 300,
@@ -27,8 +28,7 @@
     "modern_theme": true
   },
   "session_defaults": {
-    "default_duration": 30,
-    "available_durations": [25, 30, 45, 60, 90]
+    "default_duration": 30
   },
   "features": {
     "enable_utility_hotkeys": false,

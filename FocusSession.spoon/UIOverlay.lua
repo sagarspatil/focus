@@ -11,6 +11,10 @@ function obj:init(config)
     self.isVisible = false
     self.currentStyle = "normal"
     self.isPaused = false
+
+    -- Default pulse flash color if not provided in config
+    self.pulseFlashColor = (config.colors and config.colors.pulse_flash_color) or {red = 0.8, green = 0.8, blue = 0.8, alpha = 0.3}
+    self.flashColor = (config.colors and config.colors.flash_color) or {red = 1, green = 0, blue = 0, alpha = 0.5} -- Default red
     
     return self
 end
@@ -153,7 +157,7 @@ function obj:createControlButtons(width, height)
     local dotRadius = 1.5
     local dotSpacing = 5
     local gridX = reorderX - 6
-    local gridY = centerY - 7.5
+    local gridY = centerY - (dotSpacing + dotRadius) -- Adjusted for better vertical centering
     
     for row = 0, 2 do
         for col = 0, 1 do
@@ -304,25 +308,37 @@ function obj:updateStyle(phase)
 end
 
 function obj:pulse()
-    if not self.canvas or not self.isVisible then
-        return
+  if self.flashCanvas then
+    self.flashCanvas:delete()
+    self.flashCanvas = nil
+  end
+
+  local screen = hs.screen.primaryScreen()
+  local fullscreenRect = screen:fullFrame()
+
+  self.flashCanvas = hs.canvas.new(fullscreenRect)
+  self.flashCanvas:appendElements({
+    type = "rectangle",
+    fillColor = self.pulseFlashColor, -- Use the new pulse flash color
+    frame = {x = 0, y = 0, w = fullscreenRect.w, h = fullscreenRect.h}
+  })
+  self.flashCanvas:windowStyle("utility")
+  self.flashCanvas:level(hs.canvas.windowLevels.overlay + 1)
+  self.flashCanvas:show()
+
+  hs.timer.doAfter(0.75, function() -- Flash duration
+    if self.flashCanvas then
+      self.flashCanvas:delete()
+      self.flashCanvas = nil
     end
-    
-    -- Very subtle pulse - just flash the timer badge slightly
-    local originalColor = self.canvas[2].fillColor
-    self.canvas[2].fillColor = {red = 0.25, green = 0.25, blue = 0.27, alpha = 1}
-    
-    hs.timer.doAfter(0.2, function()
-        if self.canvas and self.canvas[2] then
-            self.canvas[2].fillColor = originalColor
-        end
-    end)
+  end)
 end
 
 function obj:redFlash()
     -- Create full-screen red flash
     if self.flashCanvas then
         self.flashCanvas:delete()
+        self.flashCanvas = nil
     end
     
     local screen = hs.screen.primaryScreen()
@@ -333,7 +349,7 @@ function obj:redFlash()
     self.flashCanvas[1] = {
         type = "rectangle",
         action = "fill",
-        fillColor = self.config.colors.flash_color
+        fillColor = self.flashColor -- Use self.flashColor initialized in init
     }
     
     self.flashCanvas:level(hs.canvas.windowLevels.overlay + 1)
